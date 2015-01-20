@@ -1,6 +1,8 @@
 # Screenshot as a Service
 
-A simple screenshot web service powered by [Express](http://expressjs.com) and [PhantomJS](http://www.phantomjs.org/). Forked from [screenshot-app](http://github.com/visionmedia/screenshot-app).
+A simple screenshot web service powered by [Express](http://expressjs.com) and [PhantomJS](http://www.phantomjs.org/). Initially forked from [screenshot-app](http://github.com/visionmedia/screenshot-app).
+
+This application has been forked and revised so as to eliminate sync and async modes and serve a default image when one does not exist in the cache. The fileCleaner service has also been replaced with the refreshService which after every refreshPeriod will asynchronously refresh the screenshot. Lifetime config parameter now defines the number of refresh cycles of inactivity before the file is deleted. Every time the file is actively requested the refresh counter is reset to 1.
 
 ## Setup
 
@@ -53,12 +55,6 @@ GET /?url=www.google.com&clipRect=%7B"top"%3A14%2C"left"%3A3%2C"width"%3A400%2C"
 GET /?url=www.mysite.com&userName=johndoe&password=S3cr3t
 # Return a screenshot of a website requiring basic http authentication
 
-# Asynchronous call
-GET /?url=www.google.com&callback=http://www.myservice.com/screenshot/google
-# Return an empty response immediately (HTTP 200 OK),
-# then send a POST request to the callback URL when the screenshot is ready
-# with the PNG image in the body.
-
 # Screenshot delay
 GET /?url=www.google.com&delay=1000
 # Return a 1024x600 PNG screenshot of the www.google.com homepage
@@ -81,67 +77,17 @@ rasterizer:
   path: '/tmp/'        # where the screenshot files are stored
   viewport: '1024x600' # browser window size. Height grows according to the content
 cache:
-  lifetime: 60000      # one minute, set to 0 for no cache
+  refreshPeriod: 10000 # 10 seconds before screenshot image is refreshed in cache
+  lifetime: 6          # 6 refresh cycles of inactivity befor screenshot image is deleted
 server:
   port: 3000           # main service port
 ```
-
-For instance, if you want to setup a proxy for phantomjs, create a `config/development.yaml` as follows:
-
-```yml
-rasterizer:
-  command: 'phantomjs --proxy=myproxy:1234'
-```
-
-## Asynchronous Usage Example
-
-Here is an example application that takes asynchronous screenshots of a list of websites at regular intervals and saves them to disk:
-
-```js
-var http = require('http');
-var url  = require('url');
-var fs   = require('fs');
-
-// create a server to receive callbacks from the screenshot service
-// and save the body to a PNG file
-http.createServer(function(req, res) {
-  var name = url.parse(req.url).pathname.slice(1);
-  req.on('end', function () {
-    res.writeHead(200);
-    res.end();
-  });
-  req.pipe(fs.createWriteStream(__dirname + '/' + name + '.png'));
-}).listen(8124);
-console.log("Server running on port 8124");
-
-var sites = {
-  'google': 'http://www.google.com',
-  'yahoo':  'http://www.yahoo.com'
-};
-var screenshotServiceUrl = 'http://my.screenshot.app:3000/'; // must be running screenshot-app
-
-// call the screenshot service using the current server as a callback
-var poller = function() {
-  for (name in sites) {
-    var options = url.parse(screenshotServiceUrl + sites[name] + '?callback=http://localhost:8124/' + name);
-    http.get(options, function(res) {});
-  };
-}
-setInterval(poller, 60000);
-```
-
-Every minute, this script will refresh the two screenshots `google.png` and `yahoo.png`.
-
-## TODO
-
-* Allow to configure phantomjs options through YAML config
-* Implement a simple queuing system forcing the use of asynchronous screenshots when the number of browser processes reaches the limit
 
 ## License
 
 (The MIT License)
 
-Copyright (c) 2012 François Zaninotto, TJ Holowaychuk &lt;tj@vision-media.ca&gt;
+Copyright (c) 2015 François Zaninotto, TJ Holowaychuk &lt;tj@vision-media.ca&gt; and Darren Smith
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
