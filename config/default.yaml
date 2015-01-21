@@ -9,5 +9,5 @@ cache:
   lifetime: 3            # Number of refresh cycles before image is deleted (accessing image resets lifetime counter)
 server:
   port: 3000           # main service port
-  host: '127.0.0.1'    # host to listen on
+  host: '0.0.0.0'      # host to listen on
   useCors: false       # enable CORS support
