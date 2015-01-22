@@ -57,7 +57,7 @@ module.exports = function(app, useCors) {
     callRasterizer(rasterizerOptions, function(error) {
       if (error) return callback(error);
     });
-    var defaultImage = "public/defaultImage.png";
+    var defaultImage = path.normalize(__dirname + '/..') + '/public/defaultImage.png';
     sendImageInResponse(filePathWithoutFile, defaultImage, res, PassThroughOptions, callback);
   }
 
@@ -85,14 +85,14 @@ module.exports = function(app, useCors) {
       res.setHeader("Access-Control-Expose-Headers", "Content-Type");
     }
     if(imagePath){
-      if(imagePath == "public/defaultImage.png"){
+      if(imagePath == (path.normalize(__dirname + '/..') + '/public/defaultImage.png')){
         var FileToAdd = join(filePathWithoutFile, rasterizerOptions.headers.filename);
         console.log("adding uncached file to refreshService - " + FileToAdd);
         refreshService.fileRefreshCounter[FileToAdd] = 1;
         refreshService.addFile(1, FileToAdd, rasterizerOptions);
       }
       res.sendfile(imagePath, function(err) {
-        if(imagePath !== "public/defaultImage.png"){
+        if(imagePath !== (path.normalize(__dirname + '/..') + '/public/defaultImage.png')){
           console.log("adding cached file to refreshService - " + imagePath);
           refreshService.fileRefreshCounter[imagePath] = 1;
           refreshService.addFile(1, imagePath, rasterizerOptions);
