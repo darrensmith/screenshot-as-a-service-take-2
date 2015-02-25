@@ -5,7 +5,7 @@ rasterizer:
   path: '/tmp/'        # where the screenshot files are stored
   viewport: '1024x600' # browser window size. Height frows according to the content
 cache:
-  refreshperiod: 10000   # Refresh Period in ms (file will be refreshed after this period - async. 3600000 - 2 hrs)
+  refreshperiod: 86400000  # Refresh Period in ms (file will be refreshed after this period - async. 3600000 - 2 hrs)
   lifetime: 3            # Number of refresh cycles before image is deleted (accessing image resets lifetime counter)
 server:
   port: 3000           # main service port
